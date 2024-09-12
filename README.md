@@ -10,7 +10,7 @@
 Install latest from the GitHub \[repository\]\[repo\]:
 
 - Clone the repo
-- `pip install -e`
+- `pip install -e .`
 
 ### Using
 
