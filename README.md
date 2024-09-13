@@ -19,20 +19,77 @@ To get context from an LLM, use one of the helper functions to pull it.
 If a function pulls a single context snippit it will return the text, if
 it return multiple it will return a dictionary.
 
+#### 1 item ex (Nbclassic)
+
 ``` python
-nbclassic_server()[:200]
+nbclassic_server_docs = ck.nbclassic_server()
 ```
 
-    '# Running a Jupyter Server with NbClassic#\n\nThe Jupyter NbClassic web application is based on a server-client structure. Jupyter server uses a two-process kernel architecture based on ZeroMQ, as well '
+Read \$`nbclassic_server_docs` and give me a short summary of what is in
+it. End with ‘Loaded into Context’ in a new paragraph
+
+The nbclassic_server_docs contain information about the Jupyter
+NbClassic package, which implements the classic Jupyter Notebook 6 as a
+Jupyter Server extension. It covers installation, configuration, usage
+options, development details, and the timeline for supporting nbclassic
+during the transition to Jupyter Notebook 7. The document also mentions
+the compatibility issues between Notebook 6 and 7, and the need for
+nbclassic to support users during this transition period.
+
+Loaded into Context
+
+#### Fastcore (multiple, but only want 1)
 
 ``` python
-discord().keys()
+ck.fastcore().keys()
+```
+
+    dict_keys(['llms', 'llms-ctx', 'llms-ctx-full'])
+
+``` python
+fc_ctx = ck.fastcore()['llms-ctx-full']
+```
+
+Read \$`fc_ctx` and give me a short summary of what is in it. End with
+‘Loaded into Context’ in a new paragraph
+
+The fc_ctx contains comprehensive documentation for the fastcore
+library, which is part of the fast.ai ecosystem. It includes detailed
+explanations and examples for various modules such as basics,
+foundation, dispatch, meta, parallel, script, xtras, and more. The
+documentation covers utility functions, classes, decorators, and tools
+for tasks like type dispatch, attribute delegation, metaprogramming,
+parallel processing, CLI creation, and XML generation. It also includes
+information on testing utilities and extensions to Python’s standard
+library.
+
+Loaded into Context
+
+#### Discord (multiple and want multiple)
+
+``` python
+discord = AttrDict(ck.discord())
+discord.keys()
 ```
 
     dict_keys(['app', 'oauth', 'user', 'interact'])
 
 ``` python
-discord()['app'][:200]
+discord.app[:200]
 ```
 
     '# Discord Application Commands\n\nApplication commands are native ways to interact with apps in the Discord client. There are 3 types of commands accessible in different interfaces: the chat input, a me'
+
+``` python
+user, oauth = discord.user, discord.oauth
+```
+
+Explain the difference between what’s in \$`user` vs \$`oauth`
+
+The `user` variable contains information about developing a
+user-installable Discord app, including details on setting up the
+project, creating commands, handling interactions, and using metadata.
+
+The `oauth` variable contains information about Discord’s OAuth2
+implementation, including different authorization flows, scopes, token
+handling, and API endpoints related to OAuth2 authentication.
