@@ -7,6 +7,8 @@ d = { 'settings': { 'branch': 'main',
                 'lib_path': 'ContextKit'},
   'syms': { 'ContextKit.core': { 'ContextKit.core.claudette': ('core.html#claudette', 'ContextKit/core.py'),
                                  'ContextKit.core.discord': ('core.html#discord', 'ContextKit/core.py'),
+                                 'ContextKit.core.docker': ('core.html#docker', 'ContextKit/core.py'),
+                                 'ContextKit.core.fastcore': ('core.html#fastcore', 'ContextKit/core.py'),
                                  'ContextKit.core.fasthtml': ('core.html#fasthtml', 'ContextKit/core.py'),
                                  'ContextKit.core.nbclassic_server': ('core.html#nbclassic_server', 'ContextKit/core.py'),
                                  'ContextKit.core.read_gist': ('core.html#read_gist', 'ContextKit/core.py')}}}
