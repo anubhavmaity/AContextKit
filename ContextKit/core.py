@@ -8,6 +8,7 @@ __all__ = ['read_gist', 'nbclassic_server', 'docker', 'fasthtml', 'fastcore', 'c
 # %% ../nbs/00_core.ipynb 3
 from httpx import get
 from playwrightnb import url2md
+from toolslm.download import find_docs, read_docs
 
 # %% ../nbs/00_core.ipynb 4
 def read_gist(user,s): return get(f'https://gist.githubusercontent.com/{user}/{s}').text
@@ -26,14 +27,10 @@ def docker():
     return {k:url2md(v,'.prose') for k,v in urls.items()}
 
 # %% ../nbs/00_core.ipynb 7
-def fasthtml():return get('https://docs.fastht.ml/llms-ctx.txt').text
+def fasthtml():return read_docs('https://docs.fastht.ml')
 
 # %% ../nbs/00_core.ipynb 8
-def fastcore():
-    urls = {'llms':'https://fastcore.fast.ai/llms-ctx.txt',
-            'llms-ctx':'https://fastcore.fast.ai/llms-ctx.txt',
-            'llms-ctx-full': 'https://fastcore.fast.ai/llms-ctx-full.txt'}
-    return {k:get(v).text for k,v in urls.items()}
+def fastcore(): return read_docs('https://fastcore.fast.ai/')
 
 # %% ../nbs/00_core.ipynb 9
 def claudette():

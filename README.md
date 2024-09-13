@@ -45,13 +45,7 @@ Loaded into Context
 #### Fastcore (multiple, but only want 1)
 
 ``` python
-ck.fastcore().keys()
-```
-
-    dict_keys(['llms', 'llms-ctx', 'llms-ctx-full'])
-
-``` python
-fc_ctx = ck.fastcore()['llms-ctx-full']
+fc_ctx = ck.fastcore()
 ```
 
 Read \$`fc_ctx` and give me a short summary of what is in it. End with
