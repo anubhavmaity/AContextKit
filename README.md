@@ -10,7 +10,7 @@
 Install latest from the GitHub \[repository\]\[repo\]:
 
 - Clone the repo
-- `pip install -e .`
+- `pip install -e`
 
 ### Using
 
@@ -18,6 +18,10 @@ To get context from an LLM, use one of the helper functions to pull it.
 
 If a function pulls a single context snippit it will return the text, if
 it return multiple it will return a dictionary.
+
+``` python
+import ContextKit.core as ck
+```
 
 #### 1 item ex (Nbclassic)
 
