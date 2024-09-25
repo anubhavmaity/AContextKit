@@ -12,7 +12,7 @@ import re
 import html2text
 import os
 import requests
-
+from fastcore.all import delegates
 import glob
 import fnmatch
 import mimetypes
@@ -21,7 +21,9 @@ import string
 from toolslm.download import html2md, read_html
 
 # %% ../nbs/00_read.ipynb 12
-def read_url(url): return html2md(read_html(url))
+@delegates(to=read_html)
+def read_url(url,**kwargs): 
+    return html2md(read_html(url,**kwargs))
 
 # %% ../nbs/00_read.ipynb 16
 def read_gist(url):
