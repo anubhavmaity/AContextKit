@@ -8,27 +8,30 @@ __all__ = ['read_url', 'read_gist', 'read_gh_file', 'read_file', 'is_unicode', '
 
 # %% ../nbs/00_read.ipynb 8
 import httpx 
-import re
 import html2text
-import os
+from fastcore.all import delegates, ifnone
+
+import re, os, glob, string
 import requests
-from fastcore.all import delegates
-import glob
-import fnmatch
-import mimetypes
+import fnmatch, mimetypes
+
 from PyPDF2 import PdfReader
-import string
 from toolslm.download import html2md, read_html
 
 # %% ../nbs/00_read.ipynb 12
-@delegates(to=read_html)
-def read_url(url,**kwargs): 
-    return html2md(read_html(url,**kwargs))
+def read_url(url, # url to read
+             heavy=False, # Use contactless browser
+             sel=None,
+             **kwargs): 
+    "Reads a url and converts to markdown"
+    if heavy: 
+        from playwrightnb import url2md
+        url2md(url,sel=ifnone(sel,'body'), **kwargs)
+    return read_html(url,**kwargs)
 
-# %% ../nbs/00_read.ipynb 16
+# %% ../nbs/00_read.ipynb 17
 def read_gist(url):
     "Returns raw gist content, or None"
-    import re
     pattern = r'https://gist\.github\.com/([^/]+)/([^/]+)'
     match = re.match(pattern, url)
     if match:
@@ -38,20 +41,18 @@ def read_gist(url):
     else:
         return None
 
-# %% ../nbs/00_read.ipynb 23
+# %% ../nbs/00_read.ipynb 24
 def read_gh_file(url):
-    import httpx
-    import re
     pattern = r'https://github\.com/([^/]+)/([^/]+)/blob/([^/]+)/(.+)'
     replacement = r'https://raw.githubusercontent.com/\1/\2/refs/heads/\3/\4'
     raw_url = re.sub(pattern, replacement, url)
     return httpx.get(raw_url).text
 
-# %% ../nbs/00_read.ipynb 27
+# %% ../nbs/00_read.ipynb 28
 def read_file(path):
     return open(path,'r').read()
 
-# %% ../nbs/00_read.ipynb 30
+# %% ../nbs/00_read.ipynb 31
 def is_unicode(filepath, sample_size=1024):
     try:
         with open(filepath, 'r') as file:
@@ -60,7 +61,7 @@ def is_unicode(filepath, sample_size=1024):
     except UnicodeDecodeError:
         return False
 
-# %% ../nbs/00_read.ipynb 33
+# %% ../nbs/00_read.ipynb 34
 def read_dir(path, 
              exclude_non_unicode=True,
              excluded_patterns=[".git/**"],
@@ -81,13 +82,13 @@ def read_dir(path,
             result.append(f"--- End of {file_path} ---")
     return '\n'.join(result)
 
-# %% ../nbs/00_read.ipynb 36
+# %% ../nbs/00_read.ipynb 37
 def read_pdf(file_path: str) -> str:
     with open(file_path, 'rb') as file:
         reader = PdfReader(file)
         return ' '.join(page.extract_text() for page in reader.pages)
 
-# %% ../nbs/00_read.ipynb 39
+# %% ../nbs/00_read.ipynb 40
 def read_yt_transcript(yt_url):
     from pytube import YouTube
     from youtube_transcript_api import YouTubeTranscriptApi
@@ -100,22 +101,22 @@ def read_yt_transcript(yt_url):
     transcript = YouTubeTranscriptApi.get_transcript(video_id)
     return ' '.join(entry['text'] for entry in transcript) 
 
-# %% ../nbs/00_read.ipynb 42
+# %% ../nbs/00_read.ipynb 43
 def read_google_sheet(orig_url):
     sheet_id = orig_url.split('/d/')[1].split('/')[0]
     csv_url = f'https://docs.google.com/spreadsheets/d/{sheet_id}/export?format=csv&id={sheet_id}&gid=0'
     res = requests.get(url=csv_url)
     return res.content
 
-# %% ../nbs/00_read.ipynb 45
+# %% ../nbs/00_read.ipynb 46
 def gdoc_url_to_parseable(url):
     pattern = r'(https://docs\.google\.com/document/d/[^/]+)/edit'
     replacement = r'\1/export?format=html'
     return re.sub(pattern, replacement, url)
 
-# %% ../nbs/00_read.ipynb 47
+# %% ../nbs/00_read.ipynb 48
 def read_gdoc(url):
-    import re, requests, html2text
+    import html2text
     doc_url = url
     doc_id = doc_url.split('/d/')[1].split('/')[0]
     export_url = f'https://docs.google.com/document/d/{doc_id}/export?format=html'

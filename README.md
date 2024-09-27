@@ -10,7 +10,7 @@
 Install latest from the GitHub \[repository\]\[repo\]:
 
 - Clone the repo
-- `pip install -e`
+- `pip install -e .`
 
 ### Using
 
@@ -20,74 +20,70 @@ If a function pulls a single context snippit it will return the text, if
 it return multiple it will return a dictionary.
 
 ``` python
-import ContextKit.core as ck
+import ContextKit.read as rd
 ```
 
-#### 1 item ex (Nbclassic)
+#### Read_X Functions
+
+Each `read_x` function is designed to work with a single argument, which
+is the location of the resource. This typically means a URL or a file
+path.
 
 ``` python
-nbclassic_server_docs = ck.nbclassic_server()
+rd.read_url('https://www.answer.ai/')[:200]
 ```
 
-Read \$`nbclassic_server_docs` and give me a short summary of what is in
-it. End with ‘Loaded into Context’ in a new paragraph
+    'Answer.AI\n\n  * __\n  * __\n\n# Answer.AI - Practical AI R&D\n\n##### Categories\n\nAll (24)\n\nBlog (2)\n\n## Other Formats\n\n  *  __CommonMark\n\nAnswer.AI is a new kind of AI R&D lab which creates practical end-u'
 
-The nbclassic_server_docs contain information about the Jupyter
-NbClassic package, which implements the classic Jupyter Notebook 6 as a
-Jupyter Server extension. It covers installation, configuration, usage
-options, development details, and the timeline for supporting nbclassic
-during the transition to Jupyter Notebook 7. The document also mentions
-the compatibility issues between Notebook 6 and 7, and the need for
-nbclassic to support users during this transition period.
-
-Loaded into Context
-
-#### Fastcore (multiple, but only want 1)
+Other arguments are always optional, but can be useful at times. For
+example, the `heavy` argument in
+[`read_url`](https://AnswerDotAI.github.io/ContextKit/read.html#read_url)
+allows you to do a heavy scrape with a contactless browser using
+`playwrightnb`.
 
 ``` python
-fc_ctx = ck.fastcore()
+rd.read_url('https://www.answer.ai/',heavy=True)[:200]
 ```
 
-Read \$`fc_ctx` and give me a short summary of what is in it. End with
-‘Loaded into Context’ in a new paragraph
+    'Answer.AI\n\n  * __\n  * __\n\n# Answer.AI - Practical AI R&D\n\n##### Categories\n\nAll (24)\n\nBlog (2)\n\n## Other Formats\n\n  *  __CommonMark\n\nAnswer.AI is a new kind of AI R&D lab which creates practical end-u'
 
-The fc_ctx contains comprehensive documentation for the fastcore
-library, which is part of the fast.ai ecosystem. It includes detailed
-explanations and examples for various modules such as basics,
-foundation, dispatch, meta, parallel, script, xtras, and more. The
-documentation covers utility functions, classes, decorators, and tools
-for tasks like type dispatch, attribute delegation, metaprogramming,
-parallel processing, CLI creation, and XML generation. It also includes
-information on testing utilities and extensions to Python’s standard
-library.
-
-Loaded into Context
-
-#### Discord (multiple and want multiple)
+Many have been creates so far, such as
 
 ``` python
-discord = AttrDict(ck.discord())
-discord.keys()
+[o for o in dir(rd) if o.startswith('read_')]
 ```
 
-    dict_keys(['app', 'oauth', 'user', 'interact'])
+    ['read_dir',
+     'read_file',
+     'read_gdoc',
+     'read_gh_file',
+     'read_gist',
+     'read_google_sheet',
+     'read_html',
+     'read_pdf',
+     'read_url',
+     'read_yt_transcript']
+
+#### Pre-built Contexts
 
 ``` python
-discord.app[:200]
+import ContextKit.contexts as ct
 ```
 
-    '# Discord Application Commands\n\nApplication commands are native ways to interact with apps in the Discord client. There are 3 types of commands accessible in different interfaces: the chat input, a me'
+Prebuild contexts will always return a dictionary. This allows you to
+choose what to use in model context
 
 ``` python
-user, oauth = discord.user, discord.oauth
+claudette_ctx = ct.claudette()
+claudette_ctx.keys()
 ```
 
-Explain the difference between what’s in \$`user` vs \$`oauth`
+    dict_keys(['async', 'core', 'toolloop'])
 
-The `user` variable contains information about developing a
-user-installable Discord app, including details on setting up the
-project, creating commands, handling interactions, and using metadata.
+``` python
+{k:f"{v[:50]} ..." for k,v in claudette_ctx.items()}
+```
 
-The `oauth` variable contains information about Discord’s OAuth2
-implementation, including different authorization flows, scopes, token
-handling, and API endpoints related to OAuth2 authentication.
+    {'async': '# The async version  ## Setup ## Async SDK ``` pyt ...',
+     'core': '# Claudette’s source  This is the ‘literate’ sourc ...',
+     'toolloop': "# Tool loop  ``` python import os # os.environ['AN ..."}
