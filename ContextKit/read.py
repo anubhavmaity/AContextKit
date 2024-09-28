@@ -187,5 +187,9 @@ def read_git_path(path):
 def read_gh_repo(path_or_url):
     "Repo contents from path, GH URL, or GH SSH address"
     gh_ssh = gh_ssh_from_gh_url(path_or_url)
+    print('a')
+    print(path_or_url)
+    print('b')
+    print(get_git_repo(gh_ssh))
     path = path_or_url if not gh_ssh else get_git_repo(gh_ssh)
     return read_git_path(path)
