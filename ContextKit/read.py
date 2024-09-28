@@ -4,7 +4,8 @@
 
 # %% auto 0
 __all__ = ['read_url', 'read_gist', 'read_gh_file', 'read_file', 'is_unicode', 'read_dir', 'read_pdf', 'read_yt_transcript',
-           'read_google_sheet', 'gdoc_url_to_parseable', 'read_gdoc']
+           'read_google_sheet', 'gdoc_url_to_parseable', 'read_gdoc', 'gh_ssh_from_gh_url', 'get_default_branch',
+           'get_git_repo', 'read_git_path', 'read_gh_repo']
 
 # %% ../nbs/00_read.ipynb 8
 import httpx 
@@ -64,12 +65,15 @@ def is_unicode(filepath, sample_size=1024):
 # %% ../nbs/00_read.ipynb 34
 def read_dir(path, 
              exclude_non_unicode=True,
+             included_patterns=["*"],
              excluded_patterns=[".git/**"],
              verbose=True):
     pattern = '**/*'
     result = []
     for file_path in glob.glob(os.path.join(path, pattern), recursive=True):
         if any(fnmatch.fnmatch(file_path, pat) for pat in excluded_patterns):
+            continue
+        if not any(fnmatch.fnmatch(file_path, pat) for pat in included_patterns):
             continue
         if os.path.isfile(file_path):
             if exclude_non_unicode and not is_unicode(file_path):
@@ -123,3 +127,65 @@ def read_gdoc(url):
     html_doc_content = requests.get(export_url).text
     doc_content = html2text.html2text(html_doc_content)
     return doc_content
+
+# %% ../nbs/00_read.ipynb 53
+def gh_ssh_from_gh_url(gh_repo_address):
+    "Given a GH URL or SSH remote address, returns a GH URL or None"
+    pattern = r'https://github\.com/([^/]+)/([^/]+)(?:/.*)?'
+    if gh_repo_address.startswith("git@github.com:"):
+        return gh_repo_address
+    elif match := re.match(pattern, gh_repo_address):
+        user, repo = match.groups()
+        return f'git@github.com:{user}/{repo}.git'
+    else:
+        # Not a GitHub URL or a GitHub SSH remote address
+        return None
+
+def get_default_branch(repo_path):
+    "master or main"
+    try:
+        result = subprocess.run(['git', 'symbolic-ref', 'refs/remotes/origin/HEAD'], 
+                                cwd=repo_path, capture_output=True, text=True, check=True)
+        return result.stdout.strip().split('/')[-1]
+    except subprocess.CalledProcessError:
+        return 'main'  # Default to 'main' if we can't determine the branch
+
+def get_git_repo(gh_ssh):
+    "Fetchs from a GH SSH address, returns a path"
+    repo_name = gh_ssh.split('/')[-1].replace('.git', '')
+    cache_dir = Path(os.environ.get('XDG_CACHE_HOME', Path.home() / '.cache')) / 'contextkit_git_clones'
+    cache_dir.mkdir(parents=True, exist_ok=True)
+    repo_dir = cache_dir / repo_name
+
+    if repo_dir.exists():
+        print("Repo already cached. Updating.")
+        try:
+            subprocess.run(['git', 'fetch'], cwd=repo_dir, check=True, capture_output=True)
+            default_branch = get_default_branch(repo_dir)
+            subprocess.run(['git', 'reset', '--hard', f'origin/{default_branch}'], 
+                           cwd=repo_dir, check=True, capture_output=True)
+            return str(repo_dir)
+        except subprocess.CalledProcessError:
+            shutil.rmtree(repo_dir)  # Remove the cached directory if update fails
+
+    with tempfile.TemporaryDirectory() as temp_dir:
+        try:
+            print("Cloning repo.")
+            subprocess.run(['git', 'clone', gh_ssh], cwd=temp_dir, check=True, capture_output=False)
+            cloned_dir = Path(temp_dir) / repo_name
+            shutil.move(str(cloned_dir), str(repo_dir))
+            return str(repo_dir)
+        except subprocess.CalledProcessError as e:
+            print(f"Error cloning repo from cwd {temp_dir} with error {e}")
+            return None
+
+def read_git_path(path):
+    # TODO: ?enhance to read repos more specifically than directories
+    return read_dir(path)
+
+# %% ../nbs/00_read.ipynb 54
+def read_gh_repo(path_or_url):
+    "Repo contents from path, GH URL, or GH SSH address"
+    gh_ssh = gh_ssh_from_gh_url(path_or_url)
+    path = path_or_url if not gh_ssh else get_git_repo(gh_ssh)
+    return read_git_path(path)
