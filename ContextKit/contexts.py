@@ -7,6 +7,8 @@ __all__ = ['ctx_nbclassic_server', 'ctx_docker', 'ctx_fastlite_sqlutils', 'ctx_f
 
 # %% ../nbs/01_contexts.ipynb 3
 from .read import *
+from fastcore.all import parallel
+
 
 # %% ../nbs/01_contexts.ipynb 6
 def ctx_nbclassic_server(): 
@@ -17,9 +19,16 @@ def ctx_docker():
     ctxs = {'compose_file':'https://docs.docker.com/reference/compose-file/',
             'docker_cli':'https://docs.docker.com/reference/cli/docker/',
             'docker_compose_cli':'https://docs.docker.com/reference/cli/docker/compose/',
-            'dockerd':'https://docs.docker.com/reference/cli/dockerd/',
-            'dockerhub':'https://docs.docker.com/reference/api/hub/latest/'}
-    return {k: read_url(v, sel='.prose') for k,v in ctxs.items()}
+            'dockerd':'https://docs.docker.com/reference/cli/dockerd/',}
+    ctxs = {k: read_url(v, sel='.prose') for k,v in ctxs.items()}
+    
+    url = 'https://docker-py.readthedocs.io/en/stable/{}.html'
+    page_names = ['client','configs','containers','images','networks','nodes',
+                 'plugins','secrets','services','swarm','volumes','api','tls',]
+    urls = [url.format(p) for p in page_names]
+    pages = parallel(read_url, urls, sel='.body')    
+    ctxs = ctxs | ctx_head({f'py_{n}':p for n,p in zip(page_names,pages)})
+    return ctxs
 
 # %% ../nbs/01_contexts.ipynb 12
 def ctx_fastlite_sqlutils():
