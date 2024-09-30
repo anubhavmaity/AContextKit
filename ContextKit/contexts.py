@@ -27,7 +27,7 @@ def ctx_docker():
                  'plugins','secrets','services','swarm','volumes','api','tls',]
     urls = [url.format(p) for p in page_names]
     pages = parallel(read_url, urls, sel='.body')    
-    ctxs = ctxs | ctx_head({f'py_{n}':p for n,p in zip(page_names,pages)})
+    ctxs = ctxs | {f'py_{n}':p for n,p in zip(page_names,pages)}
     return ctxs
 
 # %% ../nbs/01_contexts.ipynb 12
