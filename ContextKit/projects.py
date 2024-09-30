@@ -9,9 +9,8 @@ __all__ = ['templates', 'create_cell', 'create_magic_template_cells', 'create_nb
 import json
 from pathlib import Path
 import ContextKit.contexts as ctx
-from fastcore.all import bind
+from fastcore.all import bind, call_parse
 
-from fastcore.all import call_parse
 from typing import Annotated
 import sys
 
@@ -46,15 +45,40 @@ def create_magic_template_nb(ctx_name, path):
 templates = {name[4:]: name for name in dir(ctx) if name.startswith('ctx_')}
 
 # %% ../nbs/02_projects.ipynb 9
-@call_parse
-def ck(ctx_name: Annotated[str, "Context name (one of: " + ", ".join(templates.keys()) + ")"],
-       path: Annotated[str, "Output path for the notebook"]):
-    """Create a magic template notebook for a chosen context."""
-    if ctx_name not in templates:
-        print(f"Error: {ctx_name} is not a valid context name.")
-        print(f"Valid options are: {', '.join(templates.keys())}")
-        sys.exit(1)
-    create_magic_template_nb(ctx_name, path)
-    print(f"Notebook created at {path}")
+import argparse
+import sys
+from pathlib import Path
+from typing import Dict
 
-# To make this CLI available when the library is installed, add this to setup.py:
+import ContextKit.contexts as ctx
+from fastcore.all import bind
+
+# %% ../nbs/02_projects.ipynb 10
+def ck():
+    templates = {name[4:]: name for name in dir(ctx) if name.startswith('ctx_')}
+    
+    parser = argparse.ArgumentParser(description="Create a magic template notebook for a chosen context.")
+    parser.add_argument('ctx_name', nargs='?', help=f"Context name. One of: {', '.join(templates.keys())}")
+    parser.add_argument('path', nargs='?', help="Output path for the notebook")
+    parser.add_argument('--force', action='store_true', help="Force overwrite without prompting")
+    args = parser.parse_args()
+    
+    if not args.ctx_name or not args.path: parser.print_help(); return
+
+    # Arg cleanup
+    if path.suffix != '.ipynb': path = path.with_suffix('.ipynb')
+    path = Path(args.path)
+    
+    # Failure mode catching
+    if path.is_dir(): print(f"Error: {path} is a directory. Please provide a file path."); return
+    if args.ctx_name not in templates:
+        print(f"Error: {args.ctx_name} is not a valid context name.")
+        print(f"Valid options are: {', '.join(templates.keys())}")
+        return
+    if path.exists() and not args.force:
+        overwrite = input(f"{path} already exists. Overwrite? (y/N): ").lower() == 'y'
+        if not overwrite: print("Operation cancelled."); return
+    
+    # Create NB
+    create_magic_template_nb(args.ctx_name, str(path), templates)
+    print(f"Notebook created at {path}")
