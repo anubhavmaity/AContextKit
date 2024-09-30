@@ -53,20 +53,21 @@ def ck():
     templates = {name[4:]: name for name in dir(ctx) if name.startswith('ctx_')}
     
     parser = argparse.ArgumentParser(description="Create a magic template notebook or open Jupyter notebook.")
+    
     subparsers = parser.add_subparsers(dest='command')
 
-    create_parser = subparsers.add_parser('c', help='Create a magic template notebook')
+    create_parser = subparsers.add_parser('c', help='Create a magic template notebook', formatter_class=argparse.ArgumentDefaultsHelpFormatter)
     create_parser.add_argument('ctx_name', help=f"Context name. One of: {', '.join(templates.keys())}")
     create_parser.add_argument('path', help="Output path for the notebook")
     create_parser.add_argument('--force', default=False, action='store_true', help="Force overwrite without prompting")
     
-    jnb_parser = subparsers.add_parser('o', help='Open Jupyter notebook')
+    jnb_parser = subparsers.add_parser('o', help='Open Jupyter notebook', formatter_class=argparse.ArgumentDefaultsHelpFormatter)
     jnb_parser.add_argument('path', help="Path to the notebook")
     jnb_parser.add_argument('--host', default='localhost', help="Jupyter server host")
     jnb_parser.add_argument('--port', type=int, default=8888, help="Jupyter server port")
     jnb_parser.add_argument('--jupy-base-dir', type=Path, default='~/github', help="Base directory for notebook paths")
 
-    create_and_open_parser = subparsers.add_parser('co', help='Create a magic template notebook and open it')
+    create_and_open_parser = subparsers.add_parser('co', help='Create a magic template notebook and open it', formatter_class=argparse.ArgumentDefaultsHelpFormatter)
     create_and_open_parser.add_argument('ctx_name', help=f"Context name. One of: {', '.join(templates.keys())}")
     create_and_open_parser.add_argument('path', help="Output path for the notebook")
     create_and_open_parser.add_argument('--force', default=False, action='store_true', help="Force overwrite without prompting")
