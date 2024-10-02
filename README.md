@@ -57,7 +57,9 @@ Many have been creates so far, such as
      'read_file',
      'read_gdoc',
      'read_gh_file',
+     'read_gh_repo',
      'read_gist',
+     'read_git_path',
      'read_google_sheet',
      'read_html',
      'read_pdf',
@@ -74,16 +76,16 @@ Prebuild contexts will always return a dictionary. This allows you to
 choose what to use in model context
 
 ``` python
-claudette_ctx = ct.claudette()
+claudette_ctx = ct.ctx_claudette()
 claudette_ctx.keys()
 ```
 
-    dict_keys(['async', 'core', 'toolloop'])
+    dict_keys(['async_docs', 'core_docs', 'toolloop_docs'])
 
 ``` python
 {k:f"{v[:50]} ..." for k,v in claudette_ctx.items()}
 ```
 
-    {'async': '# The async version  ## Setup ## Async SDK ``` pyt ...',
-     'core': '# Claudette’s source  This is the ‘literate’ sourc ...',
-     'toolloop': "# Tool loop  ``` python import os # os.environ['AN ..."}
+    {'async_docs': '# The async version  ## Setup ## Async SDK ``` pyt ...',
+     'core_docs': '# Claudette’s source  This is the ‘literate’ sourc ...',
+     'toolloop_docs': "# Tool loop  ``` python import os # os.environ['AN ..."}
