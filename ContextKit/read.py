@@ -67,9 +67,10 @@ def read_dir(path,
              exclude_non_unicode=True,
              included_patterns=["*"],
              excluded_patterns=[".git/**"],
-             verbose=True):
+             verbose=True,
+             as_string=True):
     pattern = '**/*'
-    result = []
+    result = {}
     for file_path in glob.glob(os.path.join(path, pattern), recursive=True):
         if any(fnmatch.fnmatch(file_path, pat) for pat in excluded_patterns):
             continue
@@ -80,11 +81,12 @@ def read_dir(path,
                 continue
             if verbose:
                 print(f"Including {file_path}")
-            result.append(f"--- File: {file_path} ---")
             with open(file_path, 'r', errors='ignore') as f:
-                result.append(f.read())
-            result.append(f"--- End of {file_path} ---")
-    return '\n'.join(result)
+                result[file_path] = f.read()
+    if as_string:
+        return '\n'.join([f"--- File: {file_path} ---\n{v}\n--- End of {file_path} ---" for file_path,v in result.items()])
+    else:
+        return result
 
 # %% ../nbs/00_read.ipynb 37
 def read_pdf(file_path: str) -> str:
@@ -127,6 +129,10 @@ def read_gdoc(url):
     html_doc_content = requests.get(export_url).text
     doc_content = html2text.html2text(html_doc_content)
     return doc_content
+
+# %% ../nbs/00_read.ipynb 52
+import tempfile, subprocess, os, re, shutil
+from pathlib import Path
 
 # %% ../nbs/00_read.ipynb 53
 def gh_ssh_from_gh_url(gh_repo_address):
