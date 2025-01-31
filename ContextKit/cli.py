@@ -12,7 +12,7 @@ from pathlib import Path
 import ContextKit.contexts as ctx
 import argparse
 from fastcore.all import bind
-from .projects import *
+from ContextKit.projects import *
 
 # %% ../nbs/03_cli.ipynb 3
 def open_nb(path=None, host='localhost', port=8888, base_dir='~/github'):

@@ -6,7 +6,7 @@
 __all__ = ['ctx_nbclassic_server', 'ctx_docker', 'ctx_fastlite_sqlutils', 'ctx_fasthtml', 'ctx_fastcore', 'ctx_claudette']
 
 # %% ../nbs/01_contexts.ipynb 3
-from .read import *
+from ContextKit.read import *
 from fastcore.all import parallel
 
 
