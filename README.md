@@ -7,10 +7,7 @@
 
 ### Installation
 
-Install latest from the GitHub \[repository\]\[repo\]:
-
-- Clone the repo
-- `pip install -e .`
+    pip install contextkit
 
 ### Using
 
@@ -33,19 +30,17 @@ path.
 rd.read_url('https://www.answer.ai/')[:200]
 ```
 
-    'Answer.AI\n\n  * __\n  * __\n\n# Answer.AI - Practical AI R&D\n\n##### Categories\n\nAll (24)\n\nBlog (2)\n\n## Other Formats\n\n  *  __CommonMark\n\nAnswer.AI is a new kind of AI R&D lab which creates practical end-u'
+    'Answer.AI\n\n  * __\n  * __\n\n# Answer.AI - Practical AI R&D\n\n##### Categories\n\nAll (33)\n\nai (20)\n\ncoding (5)\n\ncompany (2)\n\ncourses (1)\n\neducation (1)\n\ninterview (1)\n\nopen-source (14)\n\npolicy (4)\n\nproduct'
 
 Other arguments are always optional, but can be useful at times. For
-example, the `heavy` argument in
-[`read_url`](https://AnswerDotAI.github.io/ContextKit/read.html#read_url)
-allows you to do a heavy scrape with a contactless browser using
-`playwrightnb`.
+example, the `heavy` argument in `read_url` allows you to do a heavy
+scrape with a contactless browser using `playwrightnb`.
 
 ``` python
 rd.read_url('https://www.answer.ai/',heavy=True)[:200]
 ```
 
-    'Answer.AI\n\n  * __\n  * __\n\n# Answer.AI - Practical AI R&D\n\n##### Categories\n\nAll (24)\n\nBlog (2)\n\n## Other Formats\n\n  *  __CommonMark\n\nAnswer.AI is a new kind of AI R&D lab which creates practical end-u'
+    'Answer.AI\n\n  * __\n  * __\n\n# Answer.AI - Practical AI R&D\n\n##### Categories\n\nAll (33)\n\nai (20)\n\ncoding (5)\n\ncompany (2)\n\ncourses (1)\n\neducation (1)\n\ninterview (1)\n\nopen-source (14)\n\npolicy (4)\n\nproduct'
 
 Many have been creates so far, such as
 
@@ -65,27 +60,3 @@ Many have been creates so far, such as
      'read_pdf',
      'read_url',
      'read_yt_transcript']
-
-#### Pre-built Contexts
-
-``` python
-import ContextKit.contexts as ct
-```
-
-Prebuild contexts will always return a dictionary. This allows you to
-choose what to use in model context
-
-``` python
-claudette_ctx = ct.ctx_claudette()
-claudette_ctx.keys()
-```
-
-    dict_keys(['async_docs', 'core_docs', 'toolloop_docs'])
-
-``` python
-{k:f"{v[:50]} ..." for k,v in claudette_ctx.items()}
-```
-
-    {'async_docs': '# The async version  ## Setup ## Async SDK ``` pyt ...',
-     'core_docs': '# Claudette’s source  This is the ‘literate’ sourc ...',
-     'toolloop_docs': "# Tool loop  ``` python import os # os.environ['AN ..."}
