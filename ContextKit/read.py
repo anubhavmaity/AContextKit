@@ -21,16 +21,20 @@ from toolslm.download import html2md, read_html
 
 # %% ../nbs/00_read.ipynb 8
 def read_url(url, # url to read
-             heavy=False, # Use contactless browser
+             heavy=False, # Use headless browser
              sel=None, # Css selector to pull content from
+             useJina=False, # Use Jina for the markdown conversion
              **kwargs): 
     "Reads a url and converts to markdown"
-    if heavy: 
-        from playwrightnb import url2md
-        url2md(url,sel=ifnone(sel,'body'), **kwargs)
-    return read_html(url,**kwargs)
+    if not heavy and not useJina: return read_html(url,sel=sel,**kwargs)
+    elif not heavy and useJina:   return httpx.get(f"https://r.jina.ai/{url}").text
+    elif heavy and not useJina: 
+        import playwrightnb
+        return playwrightnb.url2md(url,sel=ifnone(sel,'body'), **kwargs)
+    elif heavy and useJina: raise NotImplementedError("Unsupported. No benefit to using Jina with playwrightnb")
 
-# %% ../nbs/00_read.ipynb 13
+
+# %% ../nbs/00_read.ipynb 16
 def read_gist(url):
     "Returns raw gist content, or None"
     pattern = r'https://gist\.github\.com/([^/]+)/([^/]+)'
@@ -42,18 +46,18 @@ def read_gist(url):
     else:
         return None
 
-# %% ../nbs/00_read.ipynb 19
+# %% ../nbs/00_read.ipynb 22
 def read_gh_file(url):
     pattern = r'https://github\.com/([^/]+)/([^/]+)/blob/([^/]+)/(.+)'
     replacement = r'https://raw.githubusercontent.com/\1/\2/refs/heads/\3/\4'
     raw_url = re.sub(pattern, replacement, url)
     return httpx.get(raw_url).text
 
-# %% ../nbs/00_read.ipynb 23
+# %% ../nbs/00_read.ipynb 26
 def read_file(path):
     return open(path,'r').read()
 
-# %% ../nbs/00_read.ipynb 24
+# %% ../nbs/00_read.ipynb 27
 def is_unicode(filepath, sample_size=1024):
     try:
         with open(filepath, 'r') as file:
@@ -62,7 +66,7 @@ def is_unicode(filepath, sample_size=1024):
     except UnicodeDecodeError:
         return False
 
-# %% ../nbs/00_read.ipynb 27
+# %% ../nbs/00_read.ipynb 30
 def read_dir(path, 
              exclude_non_unicode=True,
              included_patterns=["*"],
@@ -88,13 +92,13 @@ def read_dir(path,
     else:
         return result
 
-# %% ../nbs/00_read.ipynb 30
+# %% ../nbs/00_read.ipynb 33
 def read_pdf(file_path: str) -> str:
     with open(file_path, 'rb') as file:
         reader = PdfReader(file)
         return ' '.join(page.extract_text() for page in reader.pages)
 
-# %% ../nbs/00_read.ipynb 33
+# %% ../nbs/00_read.ipynb 36
 def read_yt_transcript(yt_url):
     from pytube import YouTube
     from youtube_transcript_api import YouTubeTranscriptApi
@@ -107,20 +111,20 @@ def read_yt_transcript(yt_url):
     transcript = YouTubeTranscriptApi.get_transcript(video_id)
     return ' '.join(entry['text'] for entry in transcript) 
 
-# %% ../nbs/00_read.ipynb 36
+# %% ../nbs/00_read.ipynb 39
 def read_google_sheet(orig_url):
     sheet_id = orig_url.split('/d/')[1].split('/')[0]
     csv_url = f'https://docs.google.com/spreadsheets/d/{sheet_id}/export?format=csv&id={sheet_id}&gid=0'
     res = requests.get(url=csv_url)
     return res.content
 
-# %% ../nbs/00_read.ipynb 39
+# %% ../nbs/00_read.ipynb 42
 def gdoc_url_to_parseable(url):
     pattern = r'(https://docs\.google\.com/document/d/[^/]+)/edit'
     replacement = r'\1/export?format=html'
     return re.sub(pattern, replacement, url)
 
-# %% ../nbs/00_read.ipynb 41
+# %% ../nbs/00_read.ipynb 44
 def read_gdoc(url):
     import html2text
     doc_url = url
@@ -130,11 +134,11 @@ def read_gdoc(url):
     doc_content = html2text.html2text(html_doc_content)
     return doc_content
 
-# %% ../nbs/00_read.ipynb 45
+# %% ../nbs/00_read.ipynb 48
 import tempfile, subprocess, os, re, shutil
 from pathlib import Path
 
-# %% ../nbs/00_read.ipynb 46
+# %% ../nbs/00_read.ipynb 49
 def gh_ssh_from_gh_url(gh_repo_address):
     "Given a GH URL or SSH remote address, returns a GH URL or None"
     pattern = r'https://github\.com/([^/]+)/([^/]+)(?:/.*)?'
@@ -189,7 +193,7 @@ def read_git_path(path):
     # TODO: ?enhance to read repos more specifically than directories
     return read_dir(path)
 
-# %% ../nbs/00_read.ipynb 47
+# %% ../nbs/00_read.ipynb 50
 def read_gh_repo(path_or_url):
     "Repo contents from path, GH URL, or GH SSH address"
     gh_ssh = gh_ssh_from_gh_url(path_or_url)
