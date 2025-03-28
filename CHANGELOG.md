@@ -2,6 +2,10 @@
 
 <!-- do not remove -->
 
+## 0.0.6
+
+- Make read_gh_repo default to returning dict
+
 ## 0.0.5
 
 - Bug fix in __init__ for read_gh_repo
