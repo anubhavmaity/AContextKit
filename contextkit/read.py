@@ -258,7 +258,7 @@ def _get_git_repo(gh_ssh):
 
 
 # %% ../nbs/00_read.ipynb 46
-def read_gh_repo(path_or_url, as_dict=False, verbose=True):
+def read_gh_repo(path_or_url, as_dict=True, verbose=True):
     "Repo contents from path, GH URL, or GH SSH address"
     gh_ssh = _gh_ssh_from_gh_url(path_or_url)
     path = path_or_url if not gh_ssh else _get_git_repo(gh_ssh)
