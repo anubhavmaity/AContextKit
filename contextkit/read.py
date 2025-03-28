@@ -4,7 +4,7 @@
 
 # %% auto 0
 __all__ = ['read_url', 'read_gist', 'read_gh_file', 'read_file', 'is_unicode', 'read_dir', 'read_pdf', 'read_yt_transcript',
-           'read_google_sheet', 'read_gdoc', 'read_arxiv']
+           'read_google_sheet', 'read_gdoc', 'read_arxiv', 'read_gh_repo']
 
 # %% ../nbs/00_read.ipynb 5
 import httpx 
@@ -18,14 +18,18 @@ import fnmatch, mimetypes
 from PyPDF2 import PdfReader
 from toolslm.download import html2md, read_html
 
+import tempfile, subprocess, os, re, shutil
+from pathlib import Path
+
 # %% ../nbs/00_read.ipynb 8
 def read_url(url,           # URL to read
              heavy=False,   # Use headless browser
              sel=None,      # Css selector to pull content from
              useJina=False, # Use Jina for the markdown conversion
+             ignore_links=False, # Whether to keep links or not
              **kwargs): 
     "Reads a url and converts to markdown"
-    if not heavy and not useJina: return read_html(url,sel=sel,**kwargs)
+    if not heavy and not useJina: return read_html(url,sel=sel, ignore_links=ignore_links, **kwargs)
     elif not heavy and useJina:   return httpx.get(f"https://r.jina.ai/{url}").text
     elif heavy and not useJina: 
         import playwrightnb
@@ -33,7 +37,7 @@ def read_url(url,           # URL to read
     elif heavy and useJina: raise NotImplementedError("Unsupported. No benefit to using Jina with playwrightnb")
 
 
-# %% ../nbs/00_read.ipynb 16
+# %% ../nbs/00_read.ipynb 14
 def read_gist(url):
     "Returns raw gist content, or None"
     pattern = r'https://gist\.github\.com/([^/]+)/([^/]+)'
@@ -45,7 +49,7 @@ def read_gist(url):
     else:
         return None
 
-# %% ../nbs/00_read.ipynb 20
+# %% ../nbs/00_read.ipynb 18
 def read_gh_file(url):
     "Reads the contents of a file from its GitHub URL"
     pattern = r'https://github\.com/([^/]+)/([^/]+)/blob/([^/]+)/(.+)'
@@ -53,10 +57,10 @@ def read_gh_file(url):
     raw_url = re.sub(pattern, replacement, url)
     return httpx.get(raw_url).text
 
-# %% ../nbs/00_read.ipynb 24
+# %% ../nbs/00_read.ipynb 22
 def read_file(path): return open(path,'r').read()
 
-# %% ../nbs/00_read.ipynb 25
+# %% ../nbs/00_read.ipynb 23
 def is_unicode(filepath, sample_size=1024):
     try:
         with open(filepath, 'r') as file: sample = file.read(sample_size)
@@ -64,7 +68,7 @@ def is_unicode(filepath, sample_size=1024):
     except UnicodeDecodeError:
         return False
 
-# %% ../nbs/00_read.ipynb 28
+# %% ../nbs/00_read.ipynb 26
 def read_dir(path,                          # path to read
              unicode_only=True,             # ignore non-unicode files
              included_patterns=["*"],       # glob pattern of files to include
@@ -91,13 +95,13 @@ def read_dir(path,                          # path to read
     else:
         return result
 
-# %% ../nbs/00_read.ipynb 31
+# %% ../nbs/00_read.ipynb 29
 def read_pdf(file_path: str) -> str:
     with open(file_path, 'rb') as file:
         reader = PdfReader(file)
         return ' '.join(page.extract_text() for page in reader.pages)
 
-# %% ../nbs/00_read.ipynb 34
+# %% ../nbs/00_read.ipynb 32
 def read_yt_transcript(yt_url):
     from pytube import YouTube
     from youtube_transcript_api import YouTubeTranscriptApi
@@ -110,14 +114,14 @@ def read_yt_transcript(yt_url):
     transcript = YouTubeTranscriptApi.get_transcript(video_id)
     return ' '.join(entry['text'] for entry in transcript) 
 
-# %% ../nbs/00_read.ipynb 37
+# %% ../nbs/00_read.ipynb 35
 def read_google_sheet(url):
     sheet_id = url.split('/d/')[1].split('/')[0]
     csv_url = f'https://docs.google.com/spreadsheets/d/{sheet_id}/export?format=csv&id={sheet_id}&gid=0'
     res = requests.get(url=csv_url)
     return res.content
 
-# %% ../nbs/00_read.ipynb 42
+# %% ../nbs/00_read.ipynb 40
 def read_gdoc(url):
     import html2text
     doc_url = url
@@ -127,7 +131,7 @@ def read_gdoc(url):
     doc_content = html2text.html2text(html_doc_content)
     return doc_content
 
-# %% ../nbs/00_read.ipynb 45
+# %% ../nbs/00_read.ipynb 43
 def read_arxiv(url, save_pdf=False, save_dir='.'):
     "Get paper information from arxiv URL or ID, optionally saving PDF to disk"
     import re, httpx, tarfile, io, os
@@ -201,3 +205,61 @@ def read_arxiv(url, save_pdf=False, save_dir='.'):
         result['source_error'] = str(e)
     
     return result
+
+# %% ../nbs/00_read.ipynb 45
+def _gh_ssh_from_gh_url(gh_repo_address):
+    "Given a GH URL or SSH remote address, returns a GH URL or None"
+    pattern = r'https://github\.com/([^/]+)/([^/]+)(?:/.*)?'
+    if gh_repo_address.startswith("git@github.com:"):
+        return gh_repo_address
+    elif match := re.match(pattern, gh_repo_address):
+        user, repo = match.groups()
+        return f'git@github.com:{user}/{repo}.git'
+    else:
+        # Not a GitHub URL or a GitHub SSH remote address
+        return None
+
+def _get_default_branch(repo_path):
+    "master or main"
+    try:
+        result = subprocess.run(['git', 'symbolic-ref', 'refs/remotes/origin/HEAD'], 
+                                cwd=repo_path, capture_output=True, text=True, check=True)
+        return result.stdout.strip().split('/')[-1]
+    except subprocess.CalledProcessError:
+        return 'main'  # Default to 'main' if we can't determine the branch
+
+def _get_git_repo(gh_ssh):
+    "Fetchs from a GH SSH address, returns a path"
+    repo_name = gh_ssh.split('/')[-1].replace('.git', '')
+    cache_dir = Path(os.environ.get('XDG_CACHE_HOME', Path.home() / '.cache')) / 'contextkit_git_clones'
+    cache_dir.mkdir(parents=True, exist_ok=True)
+    repo_dir = cache_dir / repo_name
+
+    if repo_dir.exists():
+        try:
+            subprocess.run(['git', 'fetch'], cwd=repo_dir, check=True, capture_output=True)
+            default_branch = _get_default_branch(repo_dir)
+            subprocess.run(['git', 'reset', '--hard', f'origin/{default_branch}'], 
+                           cwd=repo_dir, check=True, capture_output=True)
+            return str(repo_dir)
+        except subprocess.CalledProcessError:
+            shutil.rmtree(repo_dir)  # Remove the cached directory if update fails
+
+    with tempfile.TemporaryDirectory() as temp_dir:
+        try:
+            print("Cloning repo.")
+            subprocess.run(['git', 'clone', gh_ssh], cwd=temp_dir, check=True, capture_output=False)
+            cloned_dir = Path(temp_dir) / repo_name
+            shutil.move(str(cloned_dir), str(repo_dir))
+            return str(repo_dir)
+        except subprocess.CalledProcessError as e:
+            print(f"Error cloning repo from cwd {temp_dir} with error {e}")
+            return None
+
+
+# %% ../nbs/00_read.ipynb 46
+def read_gh_repo(path_or_url, as_dict=False, verbose=True):
+    "Repo contents from path, GH URL, or GH SSH address"
+    gh_ssh = _gh_ssh_from_gh_url(path_or_url)
+    path = path_or_url if not gh_ssh else _get_git_repo(gh_ssh)
+    return read_dir(path,verbose=verbose,as_dict=as_dict)
