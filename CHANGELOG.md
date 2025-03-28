@@ -2,6 +2,11 @@
 
 <!-- do not remove -->
 
+## 0.0.5
+
+- Bug fix in __init__ for read_gh_repo
+
+
 ## 0.0.4
 
 
