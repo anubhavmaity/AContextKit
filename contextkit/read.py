@@ -15,7 +15,7 @@ import re, os, glob, string
 import requests
 import fnmatch, mimetypes
 
-from PyPDF2 import PdfReader
+from pypdf import PdfReader
 from toolslm.download import html2md, read_html
 
 import tempfile, subprocess, os, re, shutil
