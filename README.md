@@ -33,8 +33,10 @@ rd.read_url('https://www.answer.ai/')[:200]
     'Answer.AI\n\n  * __\n  * __\n\n# Answer.AI - Practical AI R&D\n\n##### Categories\n\nAll (33)\n\nai (20)\n\ncoding (5)\n\ncompany (2)\n\ncourses (1)\n\neducation (1)\n\ninterview (1)\n\nopen-source (14)\n\npolicy (4)\n\nproduct'
 
 Other arguments are always optional, but can be useful at times. For
-example, the `heavy` argument in `read_url` allows you to do a heavy
-scrape with a contactless browser using `playwrightnb`.
+example, the `heavy` argument in
+[`read_url`](https://AnswerDotAI.github.io/contextkit/read.html#read_url)
+allows you to do a heavy scrape with a contactless browser using
+`playwrightnb`.
 
 ``` python
 rd.read_url('https://www.answer.ai/',heavy=True)[:200]
