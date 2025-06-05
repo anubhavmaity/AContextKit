@@ -2,6 +2,20 @@
 
 <!-- do not remove -->
 
+## 0.0.8
+
+### New Features
+
+- pypdf2 has moved to pypdf ([#7](https://github.com/AnswerDotAI/ContextKit/pull/7)), thanks to [@RensDimmendaal](https://github.com/RensDimmendaal)
+  - This PR renames dependency `PyPDF2` to `pypdf` as the maintainers moved that package.
+This move will silence the deprecation warning that's currently shown when using contextkit.
+
+> .venv/lib/python3.12/site-packages/PyPDF2/__init__.py:21: DeprecationWarning: PyPDF2 is deprecated. Please move to the pypdf library instead.
+
+See: https://pypi.org/project/PyPDF2/
+
+
+
 ## 0.0.7
 
 - Update to dependencies
