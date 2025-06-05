@@ -2,6 +2,11 @@
 
 <!-- do not remove -->
 
+## 0.0.7
+
+- Update to dependencies
+
+
 ## 0.0.6
 
 - Make read_gh_repo default to returning dict
