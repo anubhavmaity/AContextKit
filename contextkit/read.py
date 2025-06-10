@@ -21,24 +21,26 @@ from toolslm.download import html2md, read_html
 import tempfile, subprocess, os, re, shutil
 from pathlib import Path
 
+from typing import Optional, List, Dict, Union
+
 # %% ../nbs/00_read.ipynb 8
-def read_url(url,           # URL to read
-             heavy=False,   # Use headless browser
-             sel=None,      # Css selector to pull content from
-             useJina=False, # Use Jina for the markdown conversion
-             ignore_links=False, # Whether to keep links or not
-             **kwargs): 
+def read_url(url: str,           # URL to read
+             heavy: bool = False,   # Use headless browser
+             sel: Optional[str] = None,      # Css selector to pull content from
+             useJina: bool = False, # Use Jina for the markdown conversion
+             ignore_links: bool = False, # Whether to keep links or not
+             ): 
     "Reads a url and converts to markdown"
-    if not heavy and not useJina: return read_html(url,sel=sel, ignore_links=ignore_links, **kwargs)
+    if not heavy and not useJina: return read_html(url,sel=sel, ignore_links=ignore_links)
     elif not heavy and useJina:   return httpx.get(f"https://r.jina.ai/{url}").text
     elif heavy and not useJina: 
         import playwrightnb
-        return playwrightnb.url2md(url,sel=ifnone(sel,'body'), **kwargs)
+        return playwrightnb.url2md(url,sel=ifnone(sel,'body'))
     elif heavy and useJina: raise NotImplementedError("Unsupported. No benefit to using Jina with playwrightnb")
 
 
 # %% ../nbs/00_read.ipynb 14
-def read_gist(url):
+def read_gist(url:str):
     "Returns raw gist content, or None"
     pattern = r'https://gist\.github\.com/([^/]+)/([^/]+)'
     match = re.match(pattern, url)
@@ -50,7 +52,7 @@ def read_gist(url):
         return None
 
 # %% ../nbs/00_read.ipynb 18
-def read_gh_file(url):
+def read_gh_file(url:str):
     "Reads the contents of a file from its GitHub URL"
     pattern = r'https://github\.com/([^/]+)/([^/]+)/blob/([^/]+)/(.+)'
     replacement = r'https://raw.githubusercontent.com/\1/\2/refs/heads/\3/\4'
@@ -58,10 +60,12 @@ def read_gh_file(url):
     return httpx.get(raw_url).text
 
 # %% ../nbs/00_read.ipynb 22
-def read_file(path): return open(path,'r').read()
+def read_file(path:str):
+    "returns file contents"
+    return open(path,'r').read()
 
 # %% ../nbs/00_read.ipynb 23
-def is_unicode(filepath, sample_size=1024):
+def is_unicode(filepath:str, sample_size:int=1024):
     try:
         with open(filepath, 'r') as file: sample = file.read(sample_size)
         return True
@@ -69,13 +73,14 @@ def is_unicode(filepath, sample_size=1024):
         return False
 
 # %% ../nbs/00_read.ipynb 26
-def read_dir(path,                          # path to read
-             unicode_only=True,             # ignore non-unicode files
-             included_patterns=["*"],       # glob pattern of files to include
-             excluded_patterns=[".git/**"], # glob pattern of files to exclude
-             verbose=True,                  # log paths of files being read
-             as_dict=False                  # returns dict of {path,content}
-            ) -> str|dict:                  # returns string with contents of files read
+def read_dir(path: str,                          # path to read
+             unicode_only: bool = True,             # ignore non-unicode files
+             included_patterns: List[str] = ["*"],       # glob pattern of files to include
+             excluded_patterns: List[str] = [".git/**"], # glob pattern of files to exclude
+             verbose: bool = True,                # log paths of files being read
+             as_dict: bool = False                  # returns dict of {path,content}
+            ) -> Union[str, Dict[str, str]]:            # returns string with contents of files read
+    """Reads files in path, returning a dict with the filenames and contents if as_dict=True, otherwise concatenating file contents into a single string. Takes optional glob patterns for files to include or exclude."""
     pattern = '**/*'
     result = {}
     for file_path in glob.glob(os.path.join(path, pattern), recursive=True):
@@ -97,12 +102,14 @@ def read_dir(path,                          # path to read
 
 # %% ../nbs/00_read.ipynb 29
 def read_pdf(file_path: str) -> str:
+    "Reads the text of a PDF with PdfReader"
     with open(file_path, 'rb') as file:
         reader = PdfReader(file)
         return ' '.join(page.extract_text() for page in reader.pages)
 
 # %% ../nbs/00_read.ipynb 32
-def read_yt_transcript(yt_url):
+def read_yt_transcript(yt_url: str):
+    "Gets the text of a YouTube transcript"
     from pytube import YouTube
     from youtube_transcript_api import YouTubeTranscriptApi
     try:
@@ -115,14 +122,16 @@ def read_yt_transcript(yt_url):
     return ' '.join(entry['text'] for entry in transcript) 
 
 # %% ../nbs/00_read.ipynb 35
-def read_google_sheet(url):
+def read_google_sheet(url: str):
+    "Reads the contents of a Google Sheet into text"
     sheet_id = url.split('/d/')[1].split('/')[0]
     csv_url = f'https://docs.google.com/spreadsheets/d/{sheet_id}/export?format=csv&id={sheet_id}&gid=0'
     res = requests.get(url=csv_url)
     return res.content
 
 # %% ../nbs/00_read.ipynb 40
-def read_gdoc(url):
+def read_gdoc(url: str):
+    "Gets the text content of a Google Doc using html2text"
     import html2text
     doc_url = url
     doc_id = doc_url.split('/d/')[1].split('/')[0]
@@ -132,7 +141,7 @@ def read_gdoc(url):
     return doc_content
 
 # %% ../nbs/00_read.ipynb 43
-def read_arxiv(url, save_pdf=False, save_dir='.'):
+def read_arxiv(url:str, save_pdf:bool=False, save_dir:str='.'):
     "Get paper information from arxiv URL or ID, optionally saving PDF to disk"
     import re, httpx, tarfile, io, os
     import xml.etree.ElementTree as ET
@@ -207,7 +216,7 @@ def read_arxiv(url, save_pdf=False, save_dir='.'):
     return result
 
 # %% ../nbs/00_read.ipynb 45
-def _gh_ssh_from_gh_url(gh_repo_address):
+def _gh_ssh_from_gh_url(gh_repo_address:str):
     "Given a GH URL or SSH remote address, returns a GH URL or None"
     pattern = r'https://github\.com/([^/]+)/([^/]+)(?:/.*)?'
     if gh_repo_address.startswith("git@github.com:"):
@@ -219,7 +228,7 @@ def _gh_ssh_from_gh_url(gh_repo_address):
         # Not a GitHub URL or a GitHub SSH remote address
         return None
 
-def _get_default_branch(repo_path):
+def _get_default_branch(repo_path:str):
     "master or main"
     try:
         result = subprocess.run(['git', 'symbolic-ref', 'refs/remotes/origin/HEAD'], 
@@ -228,7 +237,7 @@ def _get_default_branch(repo_path):
     except subprocess.CalledProcessError:
         return 'main'  # Default to 'main' if we can't determine the branch
 
-def _get_git_repo(gh_ssh):
+def _get_git_repo(gh_ssh:str):
     "Fetchs from a GH SSH address, returns a path"
     repo_name = gh_ssh.split('/')[-1].replace('.git', '')
     cache_dir = Path(os.environ.get('XDG_CACHE_HOME', Path.home() / '.cache')) / 'contextkit_git_clones'
@@ -258,7 +267,7 @@ def _get_git_repo(gh_ssh):
 
 
 # %% ../nbs/00_read.ipynb 46
-def read_gh_repo(path_or_url, as_dict=True, verbose=True):
+def read_gh_repo(path_or_url:str, as_dict:bool=True, verbose:bool=True):
     "Repo contents from path, GH URL, or GH SSH address"
     gh_ssh = _gh_ssh_from_gh_url(path_or_url)
     path = path_or_url if not gh_ssh else _get_git_repo(gh_ssh)
