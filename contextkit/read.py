@@ -45,7 +45,8 @@ def read_url(url: str,   # URL to read
     elif heavy and useJina: raise NotImplementedError("Unsupported. No benefit to using Jina with playwrightnb")
 
 # %% ../nbs/00_read.ipynb 16
-def read_gist(url:str):
+def read_gist(url:str  # gist URL, of gist to read
+             ):
     "Returns raw gist content, or None"
     pattern = r'https://gist\.github\.com/([^/]+)/([^/]+)'
     match = re.match(pattern, url)
@@ -57,7 +58,8 @@ def read_gist(url:str):
         return None
 
 # %% ../nbs/00_read.ipynb 20
-def read_gh_file(url:str):
+def read_gh_file(url:str # GitHub URL of the file to read
+                ):
     "Reads the contents of a file from its GitHub URL"
     pattern = r'https://github\.com/([^/]+)/([^/]+)/blob/([^/]+)/(.+)'
     replacement = r'https://raw.githubusercontent.com/\1/\2/refs/heads/\3/\4'
@@ -105,14 +107,16 @@ def read_dir(path: str,                          # path to read
         return result
 
 # %% ../nbs/00_read.ipynb 31
-def read_pdf(file_path: str) -> str:
+def read_pdf(file_path: str # path of PDF file to read
+            ) -> str:
     "Reads the text of a PDF with PdfReader"
     with open(file_path, 'rb') as file:
         reader = PdfReader(file)
         return ' '.join(page.extract_text() for page in reader.pages)
 
 # %% ../nbs/00_read.ipynb 36
-def read_google_sheet(url: str):
+def read_google_sheet(url: str # URL of a Google Sheet to read
+                     ):
     "Reads the contents of a Google Sheet into text"
     sheet_id = url.split('/d/')[1].split('/')[0]
     csv_url = f'https://docs.google.com/spreadsheets/d/{sheet_id}/export?format=csv&id={sheet_id}&gid=0'
@@ -120,7 +124,8 @@ def read_google_sheet(url: str):
     return res.content
 
 # %% ../nbs/00_read.ipynb 41
-def read_gdoc(url: str):
+def read_gdoc(url: str  # URL of Google Doc to read
+             ):
     "Gets the text content of a Google Doc using html2text"
     import html2text
     doc_url = url
@@ -131,7 +136,10 @@ def read_gdoc(url: str):
     return doc_content
 
 # %% ../nbs/00_read.ipynb 44
-def read_arxiv(url:str, save_pdf:bool=False, save_dir:str='.'):
+def read_arxiv(url:str, # arxiv PDF URL, or arxiv abstract URL, or arxiv ID
+               save_pdf:bool=False, # True, will save the downloaded PDF
+               save_dir:str='.' # directory in which to save the PDF
+              ):
     "Get paper information from arxiv URL or ID, optionally saving PDF to disk"
     import re, httpx, tarfile, io, os
     import xml.etree.ElementTree as ET
@@ -242,7 +250,10 @@ def _get_git_repo(gh_ssh:str):
             return None
 
 # %% ../nbs/00_read.ipynb 47
-def read_gh_repo(path_or_url:str, as_dict:bool=True, verbose:bool=False):
+def read_gh_repo(path_or_url:str,    # Repo's GitHub URL, or GH SSH address, or file path
+                 as_dict:bool=True, 
+                 verbose:bool=False
+                ):
     "Repo contents from path, GH URL, or GH SSH address"
     gh_ssh = _gh_ssh_from_gh_url(path_or_url)
     path = path_or_url if not gh_ssh else _get_git_repo(gh_ssh)
