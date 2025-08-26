@@ -152,7 +152,7 @@ def read_arxiv(url:str, # arxiv PDF URL, or arxiv abstract URL, or arxiv ID
     version_num = version.group(1) if version else None
     arxiv_id = re.sub(r'v\d+$', '', arxiv_id)
     
-    api_url = f'http://export.arxiv.org/api/query?id_list={arxiv_id}'
+    api_url = f'https://export.arxiv.org/api/query?id_list={arxiv_id}'
     
     response = httpx.get(api_url)
     
