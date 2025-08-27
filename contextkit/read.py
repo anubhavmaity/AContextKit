@@ -251,8 +251,8 @@ def _get_git_repo(gh_ssh:str):
 
 # %% ../nbs/00_read.ipynb 47
 def read_gh_repo(path_or_url:str,    # Repo's GitHub URL, or GH SSH address, or file path
-                 as_dict:bool=True, 
-                 verbose:bool=False
+                 as_dict:bool=True,  # if True, will return repo contents {path,content} dict
+                 verbose:bool=False  # if True, will log paths of files being read
                 ):
     "Repo contents from path, GH URL, or GH SSH address"
     gh_ssh = _gh_ssh_from_gh_url(path_or_url)
