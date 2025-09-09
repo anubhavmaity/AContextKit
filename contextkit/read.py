@@ -46,7 +46,7 @@ def read_link(url: str,   # URL to read
 
 # %% ../nbs/00_read.ipynb 14
 def read_url(*args,**kwargs):
-    warnings.warn("read_url() is deprecated, use read_link() instead", 
+    warnings.warn("read_url() is deprecated, use read_link() instead. It is behaviorally identical.", 
                   DeprecationWarning, stacklevel=2)
     return read_link(*args,**kwargs)
 
