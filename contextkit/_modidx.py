@@ -19,4 +19,5 @@ d = { 'settings': { 'branch': 'main',
                                  'contextkit.read.read_google_sheet': ('read.html#read_google_sheet', 'contextkit/read.py'),
                                  'contextkit.read.read_link': ('read.html#read_link', 'contextkit/read.py'),
                                  'contextkit.read.read_pdf': ('read.html#read_pdf', 'contextkit/read.py'),
-                                 'contextkit.read.read_text': ('read.html#read_text', 'contextkit/read.py')}}}
+                                 'contextkit.read.read_text': ('read.html#read_text', 'contextkit/read.py'),
+                                 'contextkit.read.read_url': ('read.html#read_url', 'contextkit/read.py')}}}
