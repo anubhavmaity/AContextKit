@@ -2,6 +2,13 @@
 
 <!-- do not remove -->
 
+## 0.0.10
+
+### Breaking changes
+
+- Rename read_url to read_link ([#12](https://github.com/AnswerDotAI/ContextKit/pull/12)), thanks to [@algal](https://github.com/algal)
+
+
 ## 0.0.9
 
 ### New Features
