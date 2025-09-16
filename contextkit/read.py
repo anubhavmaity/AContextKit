@@ -173,7 +173,6 @@ def read_arxiv(url:str, # arxiv PDF URL, or arxiv abstract URL, or arxiv ID
     
     links = entry.findall('arxiv:link', ns)
     pdf_url = next((l.get('href') for l in links if l.get('title') == 'pdf'), None)
-    pdf_url = pdf_url.replace("http://", "https://") if pdf_url and pdf_url.startswith("http://") else pdf_url
     
     result = {
         'title': entry.find('arxiv:title', ns).text.strip(),
@@ -185,7 +184,8 @@ def read_arxiv(url:str, # arxiv PDF URL, or arxiv abstract URL, or arxiv ID
     }
     
     if save_pdf and pdf_url:
-        pdf_response = httpx.get(pdf_url)
+        pdf_response = httpx.get(pdf_url, follow_redirects=True)
+        result['pdf_url'] = str(pdf_response.url)
         if pdf_response.status_code == 200:
             pdf_filename = f"{arxiv_id}{'v'+version_num if version_num else ''}.pdf"
             pdf_path = os.path.join(save_dir, pdf_filename)
