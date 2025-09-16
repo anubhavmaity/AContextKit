@@ -184,7 +184,8 @@ def read_arxiv(url:str, # arxiv PDF URL, or arxiv abstract URL, or arxiv ID
     }
     
     if save_pdf and pdf_url:
-        pdf_response = httpx.get(pdf_url)
+        pdf_response = httpx.get(pdf_url, follow_redirects=True)
+        result['pdf_url'] = str(pdf_response.url)
         if pdf_response.status_code == 200:
             pdf_filename = f"{arxiv_id}{'v'+version_num if version_num else ''}.pdf"
             pdf_path = os.path.join(save_dir, pdf_filename)
@@ -209,7 +210,7 @@ def read_arxiv(url:str, # arxiv PDF URL, or arxiv abstract URL, or arxiv ID
     
     return result
 
-# %% ../nbs/00_read.ipynb 48
+# %% ../nbs/00_read.ipynb 49
 def _gh_ssh_from_gh_url(gh_repo_address:str):
     "Given a GH URL or SSH remote address, returns a GH URL or None"
     pattern = r'https://github\.com/([^/]+)/([^/]+)(?:/.*)?'
@@ -257,7 +258,7 @@ def _get_git_repo(gh_ssh:str):
             print(f"Error cloning repo from cwd {temp_dir} with error {e}")
             return None
 
-# %% ../nbs/00_read.ipynb 49
+# %% ../nbs/00_read.ipynb 50
 def read_gh_repo(path_or_url:str,    # Repo's GitHub URL, or GH SSH address, or file path
                  as_dict:bool=True,  # if True, will return repo contents {path,content} dict
                  verbose:bool=False  # if True, will log paths of files being read
